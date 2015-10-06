@@ -996,6 +996,134 @@ loop.panel = (function(_, mozL10n) {
   });
 
   /**
+   * Used for sharing the current tab.
+   */
+  var ShareTabView = React.createClass({displayName: "ShareTabView",
+    propTypes: {
+      dispatcher: React.PropTypes.instanceOf(loop.Dispatcher).isRequired,
+      mozLoop: React.PropTypes.object.isRequired,
+      pendingOperation: React.PropTypes.bool.isRequired,
+      room: React.PropTypes.object.isRequired
+    },
+
+    mixins: [
+      sharedMixins.DocumentVisibilityMixin,
+      React.addons.PureRenderMixin
+    ],
+
+    getInitialState: function() {
+      return {
+        url: ""
+      };
+    },
+
+    handleEmailButtonClick: function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.props.dispatcher.dispatch(
+        new sharedActions.EmailRoomUrl({
+          roomUrl: this.props.room.roomUrl,
+          from: "panel"
+        })
+      );
+
+      this.props.toggleDropdownMenu();
+    },
+
+    handleCopyButtonClick: function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      this.props.dispatcher.dispatch(new sharedActions.CopyRoomUrl({
+        roomUrl: this.props.room.roomUrl,
+        from: "panel"
+      }));
+
+      this.props.toggleDropdownMenu();
+    },
+
+    onDocumentVisible: function() {
+      // We would use onDocumentHidden to null out the data ready for the next
+      // opening. However, this seems to cause an awkward glitch in the display
+      // when opening the panel, and it seems cleaner just to update the data
+      // even if there's a small delay.
+
+      this.props.mozLoop.getSelectedTabMetadata(function callback(metadata) {
+        // Bail out when the component is not mounted (anymore).
+        // This occurs during test runs. See bug 1174611 for more info.
+        if (!this.isMounted()) {
+          return;
+        }
+
+        var previewImage = metadata.favicon || "";
+        var description = metadata.title || metadata.description;
+        var url = metadata.url;
+        this.setState({
+          checked: false,
+          previewImage: previewImage,
+          description: description,
+          url: url
+        });
+      }.bind(this));
+    },
+
+    handleCreateButtonClick: function() {
+      var createRoomAction = new sharedActions.CreateRoom({
+        nameTemplate: mozL10n.get("rooms_default_room_name_template")
+      });
+
+      if (this.state.checked) {
+        createRoomAction.urls = [{
+          location: this.state.url,
+          description: this.state.description,
+          thumbnail: this.state.previewImage
+        }];
+      }
+      this.props.dispatcher.dispatch(createRoomAction);
+    },
+
+    render: function() {
+      var hostname;
+
+      try {
+        hostname = new URL(this.state.url).hostname;
+      } catch (ex) {
+        // Empty catch - if there's an error, then we won't show the context.
+      }
+
+      var contextClasses = React.addons.classSet({
+        context: true,
+        "context-checkbox-checked": this.state.checked,
+        hide: !hostname ||
+          !this.props.mozLoop.getLoopPref("contextInConversations.enabled")
+      });
+
+      return (
+        React.createElement("div", {className: "new-room-view"}, 
+          React.createElement("div", {className: contextClasses}, 
+            React.createElement(Checkbox, {checked: this.state.checked, 
+                      label: mozL10n.get("context_inroom_label2"), 
+                      onChange: this.onCheckboxChange}), 
+            React.createElement(sharedViews.ContextUrlView, {
+              allowClick: false, 
+              description: this.state.description, 
+              showContextTitle: false, 
+              thumbnail: this.state.previewImage, 
+              url: this.state.url, 
+              useDesktopPaths: true})
+          ), 
+          React.createElement("button", {className: "btn btn-info new-room-button", 
+                  disabled: this.props.pendingOperation, 
+                  onClick: this.handleCreateButtonClick}, 
+            mozL10n.get("rooms_new_room_button_label")
+          )
+        )
+      );
+    }
+  });
+
+  /**
    * Panel view.
    */
   var PanelView = React.createClass({displayName: "PanelView",

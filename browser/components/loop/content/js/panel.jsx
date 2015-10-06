@@ -996,6 +996,71 @@ loop.panel = (function(_, mozL10n) {
   });
 
   /**
+   * Used for sharing the current tab.
+   */
+  var ShareTabView = React.createClass({
+    propTypes: {
+      dispatcher: React.PropTypes.instanceOf(loop.Dispatcher).isRequired,
+      room: React.PropTypes.object.isRequired
+    },
+
+    mixins: [
+      sharedMixins.DocumentVisibilityMixin,
+      React.addons.PureRenderMixin
+    ],
+
+    handleEmailButtonClick: function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.props.dispatcher.dispatch(
+        new sharedActions.EmailRoomUrl({
+          roomUrl: this.props.room.roomUrl,
+          from: "panel"
+        })
+      );
+    },
+
+    handleCopyButtonClick: function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      this.props.dispatcher.dispatch(new sharedActions.CopyRoomUrl({
+        roomUrl: this.props.room.roomUrl,
+        from: "panel"
+      }));
+    },
+
+    render: function() {
+      return (
+        <div className="share-room-overlay"></div>
+        <div className="share-room-view">
+          <h1>Invite a friend to join you!</h1>
+          <p>It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!</p>
+
+          <span>Your link:</span>
+          <input type="text" value={this.props.room.roomUrl} />
+          <button className="btn btn-info copy-link-button"
+                  onClick={this.handleCopyButtonClick}>
+            Copy link
+          </button>
+
+          <div className="share-room-buttons">
+            <button className="btn btn-info email-link-button"
+                  onClick={this.handleEmailButtonClick}>
+              Email link
+            </button>
+            <button className="btn btn-info facebook-button"
+                    onClick={this.handleEmailButtonClick}>
+              Facebook
+            </button>
+          </div>
+        </div>
+      );
+    }
+  });
+
+  /**
    * Panel view.
    */
   var PanelView = React.createClass({
@@ -1152,6 +1217,7 @@ loop.panel = (function(_, mozL10n) {
                                       ref="contactControllerView" />
             </Tab>
           </TabView>
+          <ShareTabView dispatcher={this.props.dispatcher} />
           <div className="footer">
             <div className="user-details">
               <AvailabilityDropdown />
