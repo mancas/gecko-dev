@@ -1012,13 +1012,19 @@ loop.panel = (function(_, mozL10n) {
       Backbone.Events
     ],
 
+    getInitialState: function() {
+      return {
+        room: false
+      };
+    },
+
     handleEmailButtonClick: function(event) {
       event.preventDefault();
       event.stopPropagation();
 
       this.props.dispatcher.dispatch(
         new sharedActions.EmailRoomUrl({
-          roomUrl: this.props.room.roomUrl,
+          roomUrl: this.state.room.roomUrl,
           from: "panel"
         })
       );
@@ -1029,7 +1035,7 @@ loop.panel = (function(_, mozL10n) {
       event.preventDefault();
 
       this.props.dispatcher.dispatch(new sharedActions.CopyRoomUrl({
-        roomUrl: this.props.room.roomUrl,
+        roomUrl: this.state.room.roomUrl,
         from: "panel"
       }));
     },
@@ -1045,29 +1051,33 @@ loop.panel = (function(_, mozL10n) {
     render: function() {
       var contextClasses = React.addons.classSet({
         "share-room-view": true,
-        hide: !this.state.room
+        close: !this.state.room
       });
+
+      var roomUrl = this.state.room ? this.state.room.roomUrl : "";
 
       return (
         React.createElement("div", {className: contextClasses}, 
-          React.createElement("h1", null, "Invite a friend to join you!"), 
-          React.createElement("p", null, "It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!"), 
+          React.createElement("div", {className: "share-room-content"}, 
+            React.createElement("h1", null, "Invite a friend to join you!"), 
+            React.createElement("p", null, "It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!"), 
 
-          React.createElement("span", null, "Your link:"), 
-          React.createElement("input", {type: "text", value: this.props.room.roomUrl}), 
-          React.createElement("button", {className: "btn btn-info copy-link-button", 
-                  onClick: this.handleCopyButtonClick}, 
-            "Copy link"
-          ), 
-
-          React.createElement("div", {className: "share-room-buttons"}, 
-            React.createElement("button", {className: "btn btn-info email-link-button", 
-                  onClick: this.handleEmailButtonClick}, 
-              "Email link"
+            React.createElement("span", null, "Your link:"), 
+            React.createElement("input", {type: "text", value: roomUrl}), 
+            React.createElement("button", {className: "btn btn-info copy-link-button", 
+                    onClick: this.handleCopyButtonClick}, 
+              "Copy link"
             ), 
-            React.createElement("button", {className: "btn btn-info facebook-button", 
+
+            React.createElement("div", {className: "share-room-buttons"}, 
+              React.createElement("button", {className: "btn btn-info email-link-button", 
                     onClick: this.handleEmailButtonClick}, 
-              "Facebook"
+                "Email link"
+              ), 
+              React.createElement("button", {className: "btn btn-info facebook-button", 
+                      onClick: this.handleEmailButtonClick}, 
+                "Facebook"
+              )
             )
           )
         )

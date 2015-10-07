@@ -1012,6 +1012,12 @@ loop.panel = (function(_, mozL10n) {
       Backbone.Events
     ],
 
+    getInitialState: function() {
+      return {
+        room: false
+      };
+    },
+
     handleEmailButtonClick: function(event) {
       event.preventDefault();
       event.stopPropagation();
@@ -1045,30 +1051,34 @@ loop.panel = (function(_, mozL10n) {
     render: function() {
       var contextClasses = React.addons.classSet({
         "share-room-view": true,
-        hide: !this.state.room
+        close: !this.state.room
       });
+
+      var roomUrl = this.state.room ? this.state.room.roomUrl : "";
 
       return (
         <div className={contextClasses}>
-          <h1>Invite a friend to join you!</h1>
-          <p>It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!</p>
+          <div className="share-room-content">
+            <h1>Invite a friend to join you!</h1>
+            <p>It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!</p>
 
-          <span>Your link:</span>
-          <input type="text" value={if(this.state.room) { this.state.room.roomUrl}} />
-          <button className="btn btn-info copy-link-button"
-                  onClick={this.handleCopyButtonClick}>
-            Copy link
-          </button>
-
-          <div className="share-room-buttons">
-            <button className="btn btn-info email-link-button"
-                  onClick={this.handleEmailButtonClick}>
-              Email link
+            <span>Your link:</span>
+            <input type="text" value={roomUrl} />
+            <button className="btn btn-info copy-link-button"
+                    onClick={this.handleCopyButtonClick}>
+              Copy link
             </button>
-            <button className="btn btn-info facebook-button"
+
+            <div className="share-room-buttons">
+              <button className="btn btn-info email-link-button"
                     onClick={this.handleEmailButtonClick}>
-              Facebook
-            </button>
+                Email link
+              </button>
+              <button className="btn btn-info facebook-button"
+                      onClick={this.handleEmailButtonClick}>
+                Facebook
+              </button>
+            </div>
           </div>
         </div>
       );
