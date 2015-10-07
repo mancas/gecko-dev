@@ -981,8 +981,17 @@ html[dir="rtl"] .settings-menu .dropdown-menu {
   bottom: 0;
   right: 0;
   left: 0;
-  transition: opacity 0.5s ease-in-out;
+  transition: opacity 0.5s ease-in-out 0.2s, transform 0s ease-in-out;
+  transform: translate3d(0, 0, 0);
   opacity: 1;
+}
+
+.share-room-view > .share-room-view-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -993,15 +1002,56 @@ html[dir="rtl"] .settings-menu .dropdown-menu {
   right: 0;
   width: 80%;
   background-color: #ffffff;
-  transition: transform 0.3s ease-in-out 10s;
+  transition: transform 0.3s ease-in-out 0.7s;
   transform: translate3d(0, 0, 0);
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: flex-start;
+  padding: 20px;
 }
 
-.share-room-view.close {
-  display: none;
+.share-room-content > h1 {
+  color: #000000;
+  font-weight: bold;
+}
+
+.share-room-content > span {
+  color: #999999;
+  font-size: 12px;
+}
+
+.share-room-content > input {
+  width: 100%;
+  padding: 10px 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border: solid 1px #999999;
+}
+
+.share-room-content > .copy-link-button {
+  width: 100%;
+  padding: 10px 5px;
+  margin-top: -2px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.share-room-content > .share-room-buttons {
+  margin-top: 20px;
+  display: flex;
+  width: 100%;
+  flex-flow: row nowrap;
+  align-items: flex-start;
+  justify-content: space-around;
+}
+
+.share-room-view.closed {
   opacity: 0;
 }
 
-.share-room-view.close > .share-room-content {
+.share-room-view.closed,
+.share-room-view.closed > .share-room-content {
   transform: translate3d(100%, 0, 0);
 }

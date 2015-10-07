@@ -1038,10 +1038,20 @@ loop.panel = (function(_, mozL10n) {
         roomUrl: this.state.room.roomUrl,
         from: "panel"
       }));
+
+      event.target.textContent = "Link Copied!";
+      setTimeout(function(element) {
+        element.textContent = "Copy link";
+      }.bind(null, event.target), 3000);
     },
 
     componentDidMount: function() {
-      this.listenTo(this.props.store, 'change', this._onStoreStateChanged);
+      this.listenTo(this.props.store, "change", this._onStoreStateChanged);
+      var overlay = document.querySelector(".share-room-view-overlay");
+      overlay.addEventListener("click", function(evt) {
+        evt.preventDefault();
+        overlay.parentNode.classList.add('closed');
+      });
     },
 
     _onStoreStateChanged: function() {
@@ -1051,13 +1061,14 @@ loop.panel = (function(_, mozL10n) {
     render: function() {
       var contextClasses = React.addons.classSet({
         "share-room-view": true,
-        close: !this.state.room
+        closed: !this.state.room
       });
 
       var roomUrl = this.state.room ? this.state.room.roomUrl : "";
 
       return (
         <div className={contextClasses}>
+          <div className="share-room-view-overlay"></div>
           <div className="share-room-content">
             <h1>Invite a friend to join you!</h1>
             <p>It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!</p>
