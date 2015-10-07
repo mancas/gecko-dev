@@ -792,11 +792,13 @@ loop.panel = (function(_, mozL10n) {
     },
 
     componentWillUpdate: function(nextProps, nextState) {
+      // TODO: now the panel should not be closed when a new room is created
+
       // If we've just created a room, close the panel - the store will open
       // the room.
       if (this.state.pendingCreation &&
           !nextState.pendingCreation && !nextState.error) {
-        this.closeWindow();
+        //this.closeWindow();
       }
     },
 
@@ -1001,21 +1003,14 @@ loop.panel = (function(_, mozL10n) {
   var ShareTabView = React.createClass({displayName: "ShareTabView",
     propTypes: {
       dispatcher: React.PropTypes.instanceOf(loop.Dispatcher).isRequired,
-      mozLoop: React.PropTypes.object.isRequired,
-      pendingOperation: React.PropTypes.bool.isRequired,
-      room: React.PropTypes.object.isRequired
+      store: React.PropTypes.instanceOf(loop.store.RoomStore).isRequired
     },
 
     mixins: [
       sharedMixins.DocumentVisibilityMixin,
-      React.addons.PureRenderMixin
+      React.addons.PureRenderMixin,
+      Backbone.Events
     ],
-
-    getInitialState: function() {
-      return {
-        url: ""
-      };
-    },
 
     handleEmailButtonClick: function(event) {
       event.preventDefault();
@@ -1027,8 +1022,6 @@ loop.panel = (function(_, mozL10n) {
           from: "panel"
         })
       );
-
-      this.props.toggleDropdownMenu();
     },
 
     handleCopyButtonClick: function(event) {
@@ -1039,84 +1032,43 @@ loop.panel = (function(_, mozL10n) {
         roomUrl: this.props.room.roomUrl,
         from: "panel"
       }));
-
-      this.props.toggleDropdownMenu();
     },
 
-    onDocumentVisible: function() {
-      // We would use onDocumentHidden to null out the data ready for the next
-      // opening. However, this seems to cause an awkward glitch in the display
-      // when opening the panel, and it seems cleaner just to update the data
-      // even if there's a small delay.
-
-      this.props.mozLoop.getSelectedTabMetadata(function callback(metadata) {
-        // Bail out when the component is not mounted (anymore).
-        // This occurs during test runs. See bug 1174611 for more info.
-        if (!this.isMounted()) {
-          return;
-        }
-
-        var previewImage = metadata.favicon || "";
-        var description = metadata.title || metadata.description;
-        var url = metadata.url;
-        this.setState({
-          checked: false,
-          previewImage: previewImage,
-          description: description,
-          url: url
-        });
-      }.bind(this));
+    componentDidMount: function() {
+      this.listenTo(this.props.store, 'change', this._onStoreStateChanged);
     },
 
-    handleCreateButtonClick: function() {
-      var createRoomAction = new sharedActions.CreateRoom({
-        nameTemplate: mozL10n.get("rooms_default_room_name_template")
-      });
-
-      if (this.state.checked) {
-        createRoomAction.urls = [{
-          location: this.state.url,
-          description: this.state.description,
-          thumbnail: this.state.previewImage
-        }];
-      }
-      this.props.dispatcher.dispatch(createRoomAction);
+    _onStoreStateChanged: function() {
+      this.setState(this.props.store.getStoreState());
     },
 
     render: function() {
-      var hostname;
-
-      try {
-        hostname = new URL(this.state.url).hostname;
-      } catch (ex) {
-        // Empty catch - if there's an error, then we won't show the context.
-      }
-
       var contextClasses = React.addons.classSet({
-        context: true,
-        "context-checkbox-checked": this.state.checked,
-        hide: !hostname ||
-          !this.props.mozLoop.getLoopPref("contextInConversations.enabled")
+        "share-room-view": true,
+        hide: !this.state.room
       });
 
       return (
-        React.createElement("div", {className: "new-room-view"}, 
-          React.createElement("div", {className: contextClasses}, 
-            React.createElement(Checkbox, {checked: this.state.checked, 
-                      label: mozL10n.get("context_inroom_label2"), 
-                      onChange: this.onCheckboxChange}), 
-            React.createElement(sharedViews.ContextUrlView, {
-              allowClick: false, 
-              description: this.state.description, 
-              showContextTitle: false, 
-              thumbnail: this.state.previewImage, 
-              url: this.state.url, 
-              useDesktopPaths: true})
+        React.createElement("div", {className: contextClasses}, 
+          React.createElement("h1", null, "Invite a friend to join you!"), 
+          React.createElement("p", null, "It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!"), 
+
+          React.createElement("span", null, "Your link:"), 
+          React.createElement("input", {type: "text", value: this.props.room.roomUrl}), 
+          React.createElement("button", {className: "btn btn-info copy-link-button", 
+                  onClick: this.handleCopyButtonClick}, 
+            "Copy link"
           ), 
-          React.createElement("button", {className: "btn btn-info new-room-button", 
-                  disabled: this.props.pendingOperation, 
-                  onClick: this.handleCreateButtonClick}, 
-            mozL10n.get("rooms_new_room_button_label")
+
+          React.createElement("div", {className: "share-room-buttons"}, 
+            React.createElement("button", {className: "btn btn-info email-link-button", 
+                  onClick: this.handleEmailButtonClick}, 
+              "Email link"
+            ), 
+            React.createElement("button", {className: "btn btn-info facebook-button", 
+                    onClick: this.handleEmailButtonClick}, 
+              "Facebook"
+            )
           )
         )
       );
@@ -1280,6 +1232,7 @@ loop.panel = (function(_, mozL10n) {
                                       ref: "contactControllerView"})
             )
           ), 
+          React.createElement(ShareTabView, {dispatcher: this.props.dispatcher, store: this.props.roomStore}), 
           React.createElement("div", {className: "footer"}, 
             React.createElement("div", {className: "user-details"}, 
               React.createElement(AvailabilityDropdown, null)

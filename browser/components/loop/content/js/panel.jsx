@@ -792,11 +792,13 @@ loop.panel = (function(_, mozL10n) {
     },
 
     componentWillUpdate: function(nextProps, nextState) {
+      // TODO: now the panel should not be closed when a new room is created
+
       // If we've just created a room, close the panel - the store will open
       // the room.
       if (this.state.pendingCreation &&
           !nextState.pendingCreation && !nextState.error) {
-        this.closeWindow();
+        //this.closeWindow();
       }
     },
 
@@ -1001,12 +1003,13 @@ loop.panel = (function(_, mozL10n) {
   var ShareTabView = React.createClass({
     propTypes: {
       dispatcher: React.PropTypes.instanceOf(loop.Dispatcher).isRequired,
-      room: React.PropTypes.object.isRequired
+      store: React.PropTypes.instanceOf(loop.store.RoomStore).isRequired
     },
 
     mixins: [
       sharedMixins.DocumentVisibilityMixin,
-      React.addons.PureRenderMixin
+      React.addons.PureRenderMixin,
+      Backbone.Events
     ],
 
     handleEmailButtonClick: function(event) {
@@ -1015,7 +1018,7 @@ loop.panel = (function(_, mozL10n) {
 
       this.props.dispatcher.dispatch(
         new sharedActions.EmailRoomUrl({
-          roomUrl: this.props.room.roomUrl,
+          roomUrl: this.state.room.roomUrl,
           from: "panel"
         })
       );
@@ -1026,20 +1029,32 @@ loop.panel = (function(_, mozL10n) {
       event.preventDefault();
 
       this.props.dispatcher.dispatch(new sharedActions.CopyRoomUrl({
-        roomUrl: this.props.room.roomUrl,
+        roomUrl: this.state.room.roomUrl,
         from: "panel"
       }));
     },
 
+    componentDidMount: function() {
+      this.listenTo(this.props.store, 'change', this._onStoreStateChanged);
+    },
+
+    _onStoreStateChanged: function() {
+      this.setState(this.props.store.getStoreState());
+    },
+
     render: function() {
+      var contextClasses = React.addons.classSet({
+        "share-room-view": true,
+        hide: !this.state.room
+      });
+
       return (
-        <div className="share-room-overlay"></div>
-        <div className="share-room-view">
+        <div className={contextClasses}>
           <h1>Invite a friend to join you!</h1>
           <p>It takes two people to use Firefox Hello, so send a friend a link to browse the web with you!</p>
 
           <span>Your link:</span>
-          <input type="text" value={this.props.room.roomUrl} />
+          <input type="text" value={if(this.state.room) { this.state.room.roomUrl}} />
           <button className="btn btn-info copy-link-button"
                   onClick={this.handleCopyButtonClick}>
             Copy link
@@ -1217,7 +1232,7 @@ loop.panel = (function(_, mozL10n) {
                                       ref="contactControllerView" />
             </Tab>
           </TabView>
-          <ShareTabView dispatcher={this.props.dispatcher} />
+          <ShareTabView dispatcher={this.props.dispatcher} store={this.props.roomStore} />
           <div className="footer">
             <div className="user-details">
               <AvailabilityDropdown />

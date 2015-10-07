@@ -301,12 +301,14 @@ loop.store = loop.store || {};
      * Executed when a room has been created
      */
     createdRoom: function(actionData) {
-      this.setStoreState({pendingCreation: false});
-
+      this._mozLoop.rooms.get(actionData.roomToken, function(err, room) {
+        this.setStoreState({pendingCreation: false, room: room});
+      }.bind(this));
+      // TODO: Remove code below this line
       // Opens the newly created room
-      this.dispatchAction(new sharedActions.OpenRoom({
+      /*this.dispatchAction(new sharedActions.OpenRoom({
         roomToken: actionData.roomToken
-      }));
+      }));*/
     },
 
     /**
