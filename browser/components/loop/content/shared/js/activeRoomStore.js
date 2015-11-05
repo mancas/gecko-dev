@@ -921,7 +921,8 @@ loop.store.ActiveRoomStore = (function() {
           newRoomDescription: meta.title || meta.description || meta.url,
           newRoomThumbnail: meta.favicon,
           newRoomURL: meta.url,
-          roomToken: this.getStoreState().roomToken
+          roomToken: this.getStoreState().roomToken,
+          sentTimestamp: (new Date()).toISOString()
         }));
       }.bind(this));
     },

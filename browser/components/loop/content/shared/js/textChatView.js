@@ -25,7 +25,9 @@ loop.shared.views.chat = (function(mozL10n) {
       message: React.PropTypes.string.isRequired,
       showTimestamp: React.PropTypes.bool.isRequired,
       timestamp: React.PropTypes.string.isRequired,
-      type: React.PropTypes.string.isRequired
+      extraData: React.PropTypes.object,
+      type: React.PropTypes.string.isRequired,
+      useDesktopPaths: React.PropTypes.bool
     },
 
     /**
@@ -59,6 +61,21 @@ loop.shared.views.chat = (function(mozL10n) {
       var optionalProps = {};
       if (navigator.mozLoop) {
         optionalProps.linkClickHandler = navigator.mozLoop.openURL;
+      }
+
+      if (this.props.contentType === CHAT_CONTENT_TYPES.UPDATE_CONTEXT) {
+        return (
+          React.createElement("div", {className: classes}, 
+            React.createElement(sharedViews.ContextUrlView, {
+              allowClick: true, 
+              description: this.props.message, 
+              dispatcher: this.props.dispatcher, 
+              thumbnail: this.props.extraData.newRoomThumbnail, 
+              url: this.props.extraData.newRoomURL, 
+              useDesktopPaths: this.props.useDesktopPaths}), 
+            this.props.showTimestamp ? this._renderTimestamp() : null
+          )
+        );
       }
 
       return (
@@ -219,7 +236,9 @@ loop.shared.views.chat = (function(mozL10n) {
                                  message: entry.message, 
                                  showTimestamp: shouldShowTimestamp, 
                                  timestamp: timestamp, 
-                                 type: entry.type})
+                                 extraData: entry.extraData, 
+                                 type: entry.type, 
+                                 useDesktopPaths: this.props.useDesktopPaths})
                   );
               }, this)
             

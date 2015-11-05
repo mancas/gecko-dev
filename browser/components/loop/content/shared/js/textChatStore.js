@@ -27,7 +27,8 @@ loop.store.TextChatStore = (function() {
       "dataChannelsAvailable",
       "receivedTextChatMessage",
       "sendTextChatMessage",
-      "updateRoomInfo"
+      "updateRoomInfo",
+      "updateRoomContext"
     ],
 
     /**
@@ -189,6 +190,27 @@ loop.store.TextChatStore = (function() {
           }
         });
       }
+    },
+
+    /**
+     * Handles receiving information about the room context due to a change of the tabs
+     *
+     * @param  {sharedActions.UpdateRoomContext} actionData
+     */
+    updateRoomContext: function(actionData) {
+      console.info("MANU", actionData);
+      var msgData = {
+        contentType: CHAT_CONTENT_TYPES.UPDATE_CONTEXT,
+        message: actionData.newRoomDescription,
+        extraData: {
+          roomToken: actionData.roomToken,
+          newRoomName: actionData.newRoomName,
+          newRoomThumbnail: actionData.newRoomThumbnail,
+          newRoomURL: actionData.newRoomURL
+        },
+        sentTimestamp: actionData.sentTimestamp
+      };
+      this.sendTextChatMessage(msgData);
     }
   });
 

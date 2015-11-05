@@ -323,10 +323,11 @@ loop.shared.actions = (function() {
      */
     UpdateRoomContext: Action.define("updateRoomContext", {
       roomToken: String
-      //newRoomName: String, Optional.
+      // newRoomName: String, Optional.
       // newRoomDescription: String, Optional.
       // newRoomThumbnail: String, Optional.
       // newRoomURL: String Optional.
+      // sentTimestamp: String Optional.
     }),
 
     /**
