@@ -28,6 +28,7 @@ describe("loop.store.ActiveRoomStore", function() {
       setLoopPref: sinon.stub(),
       addConversationContext: sinon.stub(),
       addBrowserSharingListener: sinon.stub(),
+      getSelectedTabMetadata: sinon.stub(),
       removeBrowserSharingListener: sinon.stub(),
       rooms: {
         get: sinon.stub(),

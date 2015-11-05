@@ -415,6 +415,10 @@ var LoopUI;
       if (!this._tabChangeListeners) {
         this._tabChangeListeners = new Set();
         gBrowser.tabContainer.addEventListener("TabSelect", this);
+
+        // Watch for title changes as opposed to location changes as more
+        // metadata about the page is available when this event fires.
+        gBrowser.addEventListener("DOMTitleChanged", this);
       }
 
       this._tabChangeListeners.add(listener);
@@ -440,6 +444,7 @@ var LoopUI;
 
       if (!this._tabChangeListeners.size) {
         this._hideBrowserSharingInfoBar();
+        gBrowser.removeEventListener("DOMTitleChanged", this);
         gBrowser.tabContainer.removeEventListener("TabSelect", this);
         delete this._tabChangeListeners;
       }
@@ -532,33 +537,44 @@ var LoopUI;
     },
 
     /**
+    * Notify all browser sharing listeners of an update.
+    */
+    _notifyBrowserSharingListeners() {
+      for (let listener of this._tabChangeListeners) {
+         try {
+           listener(null, gBrowser.selectedBrowser.outerWindowID);
+         } catch (ex) {
+           Cu.reportError("Browser sharing listener caused an error: " + ex.message);
+         }
+      }
+    },
+
+    /**
      * Handles events from gBrowser.
      */
     handleEvent: function(event) {
-      // We only should get "select" events.
-      if (event.type != "TabSelect") {
-        return;
-      }
+      switch (event.type) {
+        case "DOMTitleChanged":
+          // Get the new title of the shared tab
+          this._notifyBrowserSharingListeners();
+          break;
 
-      let wasVisible = false;
-      // Hide the infobar from the previous tab.
-      if (event.detail.previousTab) {
-        wasVisible = this._hideBrowserSharingInfoBar(false, event.detail.previousTab.linkedBrowser);
-      }
+        case "TabSelect":
+          let wasVisible = false;
+          // Hide the infobar from the previous tab.
+          if (event.detail.previousTab) {
+            wasVisible = this._hideBrowserSharingInfoBar(false, event.detail.previousTab.linkedBrowser);
+          }
 
-      // We've changed the tab, so get the new window id.
-      for (let listener of this._tabChangeListeners) {
-        try {
-          listener(null, gBrowser.selectedBrowser.outerWindowID);
-        } catch (ex) {
-          Cu.reportError("Tab switch caused an error: " + ex.message);
-        }
-      };
+          // We've changed the tab, so get the new window id.
+          this._notifyBrowserSharingListeners();
 
-      if (wasVisible) {
-        // If the infobar was visible before, we should show it again after the
-        // switch.
-        this._maybeShowBrowserSharingInfoBar();
+          if (wasVisible) {
+            // If the infobar was visible before, we should show it again after the
+            // switch.
+            this._maybeShowBrowserSharingInfoBar();
+          }
+          break;
       }
     },
 

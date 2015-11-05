@@ -914,6 +914,16 @@ loop.store.ActiveRoomStore = (function() {
       } else {
         console.error("Unexpectedly received windowId for browser sharing when pending");
       }
+
+      // The browser being shared changed, so update to the new context
+      this._mozLoop.getSelectedTabMetadata(function(meta) {
+        this.dispatchAction(new sharedActions.UpdateRoomContext({
+          newRoomDescription: meta.title || meta.description || meta.url,
+          newRoomThumbnail: meta.favicon,
+          newRoomURL: meta.url,
+          roomToken: this.getStoreState().roomToken
+        }));
+      }.bind(this));
     },
 
     /**
