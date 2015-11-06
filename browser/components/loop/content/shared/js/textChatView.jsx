@@ -64,6 +64,9 @@ loop.shared.views.chat = (function(mozL10n) {
       }
 
       if (this.props.contentType === CHAT_CONTENT_TYPES.UPDATE_CONTEXT) {
+        if (!this.props.extraData.newRoomURL) {
+          return null;
+        }
         return (
           <div className={classes}>
             <sharedViews.ContextUrlView
