@@ -287,6 +287,7 @@ var LoopUI;
       } else if (aReason == "login" && this.MozLoopService.userProfile) {
         state = "active";
         mozL10nId += "-active";
+        suffix += "2";
       } else if (this.MozLoopService.doNotDisturb) {
         state = "disabled";
         mozL10nId += "-donotdisturb";
@@ -299,11 +300,17 @@ var LoopUI;
             mozL10nId += "-active";
           }
 
+          suffix += "2";
           this.updateTooltiptext(mozL10nId + suffix);
           this.toolbarButton.node.setAttribute("state", state);
         });
         return;
       }
+
+      if (mozL10nId === "loop-call-button3") {
+        suffix += "2";
+      }
+
       this.toolbarButton.node.setAttribute("state", state);
       this.updateTooltiptext(mozL10nId + suffix);
     },
