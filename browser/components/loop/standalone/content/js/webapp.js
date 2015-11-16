@@ -37,13 +37,15 @@ loop.webapp = (function(_, OT, mozL10n) {
 
     render: function() {
       return (
-        React.createElement("div", {className: "highlight-issue-box"}, 
-          React.createElement("div", {className: "info-panel"}, 
-            React.createElement("div", {className: "firefox-logo"}), 
-            React.createElement("h1", null, mozL10n.get("incompatible_browser_heading")), 
-            React.createElement("h4", null, mozL10n.get("incompatible_browser_message"))
-          ), 
-          React.createElement(PromoteFirefoxView, {isFirefox: this.props.isFirefox})
+        React.createElement("div", {className: "issue-box"}, 
+          React.createElement("div", {className: "issue-box-content"}, 
+            React.createElement("div", {className: "info-panel"}, 
+              React.createElement("div", {className: "hello-logo"}), 
+              React.createElement("h1", null, mozL10n.get("incompatible_browser_heading2")), 
+              React.createElement(PromoteFirefoxView, {isFirefox: this.props.isFirefox})
+            ), 
+            React.createElement("div", {className: "hello-supported-browser"})
+          )
         )
       );
     }
@@ -94,14 +96,22 @@ loop.webapp = (function(_, OT, mozL10n) {
       }
       return (
         React.createElement("div", {className: "promote-firefox"}, 
-          React.createElement("h3", null, mozL10n.get("promote_firefox_hello_heading", { brandShortname: mozL10n.get("brandShortname") })), 
           React.createElement("p", null, 
-            React.createElement("a", {className: "btn btn-large btn-accept", 
+            mozL10n.get("promote_firefox_hello_heading2", { brandShortname: mozL10n.get("brandShortname") }), 
+            React.createElement("a", {className: "promote-firefox-link", href: ""}, " ", mozL10n.get("promote_firefox_hello_link_text"))
+          ), 
+          React.createElement("div", {className: "get-firefox"}, 
+            React.createElement("a", {className: "btn", 
                href: loop.config.downloadFirefoxUrl}, 
-              mozL10n.get("get_firefox_button", {
+              mozL10n.get("get_firefox_button2", {
                 brandShortname: mozL10n.get("brandShortname")
               })
             )
+          ), 
+           React.createElement("p", null, 
+            mozL10n.get("incompatible_browser_already_have_firefox_text", { brandShortname: mozL10n.get("brandShortname") }), 
+            React.createElement("a", {className: "promote-firefox-link", href: ""}, " ", mozL10n.get("incompatible_browser_already_have_firefox_link"), " "), 
+            mozL10n.get("incompatible_browser_already_have_firefox_link_text")
           )
         )
       );

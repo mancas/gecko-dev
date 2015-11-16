@@ -127,21 +127,109 @@ html[dir="rtl"] .standalone-overlay-wrapper > .standalone-moz-logo {
   margin: 0 auto;
 }
 
-.promote-firefox {
-  text-align: center;
-  font-size: 18px;
-  line-height: 24px;
-  margin: 2em 0;
-}
-
-.promote-firefox h3 {
-  font-weight: 300;
-}
-
 .btn-unsupported-device {
   width: 80%;
   line-height: 24px;
 }
+
+.issue-box {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+}
+
+.issue-box-content {
+  align-self: center;
+}
+
+.issue-box-content .info-panel {
+  background: none;
+  border: none;
+  box-shadow: none;
+  text-align: left;
+  max-width: 430px;
+  padding: 0;
+  margin: 0;
+  float: left;
+}
+
+.info-panel h1 {
+  color: #666;
+  font-size: 22px;
+  line-height: 26px;
+  padding: 30px 0;
+  text-align: left;
+  border-bottom: solid 1px #ddd;
+  margin-bottom: 30px;
+  font-weight: normal;
+}
+
+.info-panel .hello-logo {
+  margin: 0;
+  width: 282px;
+  height: 47px;
+  background: transparent url(../img/Hello_Logo.svg) no-repeat center center;
+  background-size: contain;
+}
+
+.issue-box-content .hello-supported-browser {
+  margin-left: 50px;
+  display: inline-block;
+  width: 634px;
+  height: 443px;
+  background: transparent url(../img/BrowserWindow_Minimal.svg) no-repeat center center;
+}
+
+.promote-firefox {
+  font-size: 16px;
+  line-height: 22px;
+  color: #666;
+}
+
+.promote-firefox p {
+  display: inline-block;
+  margin: 0;
+}
+
+.promote-firefox-link {
+  font-size: 16px;
+  line-height: 22px;
+  color: #00a9dc;
+  text-decoration: none;
+}
+
+.promote-firefox .get-firefox .btn {
+  color: #fff;
+  font-size: 16px;
+  line-height: 55px;
+  font-weight: bold;
+  width: 260px;
+  height: 55px;
+  text-align: center;
+  border-radius: 4px;
+  background-color: #00a9dc;
+  position: relative;
+  /* Update .promote-firefox .get-firefox .btn:before left rule accordingly */
+  margin: 40px;
+}
+
+.promote-firefox .get-firefox .btn:hover {
+  background-color: #5cccee;
+}
+
+.promote-firefox .get-firefox .btn:before {
+  content: "";
+  display: block;
+  width: 77px;
+  height: 79px;
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+  left: -44px;
+  background: url("../img/Firefox_Logo.svg") center center;
+  background-size: 77px 79px;
+}
+
 
 /**
  * Handle in Firefox views
