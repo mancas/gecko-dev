@@ -440,6 +440,16 @@ loop.panel = (function(_, mozL10n) {
       this.props.dispatcher.dispatch(new sharedActions.OpenRoom({
         roomToken: this.props.room.roomToken
       }));
+
+      // Open url if needed
+      loop.request("getSelectedTabMetadata").then(function(metadata) {
+        var contextURL = this.props.room.decryptedContext.urls &&
+          this.props.room.decryptedContext.urls[0].location;
+        if (contextURL && metadata.url !== contextURL) {
+          loop.request("OpenURL", contextURL);
+        }
+      }.bind(this));
+
       this.closeWindow();
     },
 

@@ -81,7 +81,10 @@ describe("loop.panel", function() {
       roomToken: "QzBbvGmIZWU",
       roomUrl: "http://sample/QzBbvGmIZWU",
       decryptedContext: {
-        roomName: roomName
+        roomName: roomName,
+        urls: [{
+          location: "http://testurl.com"
+        }]
       },
       maxSize: 2,
         participants: [{
@@ -704,6 +707,24 @@ describe("loop.panel", function() {
           TestUtils.Simulate.click(roomEntry.refs.roomEntry.getDOMNode());
 
           sinon.assert.notCalled(dispatcher.dispatch);
+        });
+
+        it("should open a new tab with the room context if it is not the same as the currently open tab", function() {
+          LoopMochaUtils.stubLoopRequest(requestStubs = {
+            GetSelectedTabMetadata: function() {
+              return {
+                url: "http://invalid.com",
+                description: "fakeSite",
+                previews: ["fakeimage.png"]
+              };
+            },
+            openURL: sinon.stub()
+          });
+
+          TestUtils.Simulate.click(roomEntry.refs.roomEntry.getDOMNode());
+
+          sinon.assert.calledOnce(requestStubs.openURL);
+          sinon.assert.calledWithExactly(requestStubs.openURL, "http://testurl.com");
         });
       });
     });
