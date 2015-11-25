@@ -327,6 +327,7 @@ loop.shared.actions = (function() {
       // newRoomDescription: String, Optional.
       // newRoomThumbnail: String, Optional.
       // newRoomURL: String Optional.
+      // sentTimestamp: String, Optional.
     }),
 
     /**

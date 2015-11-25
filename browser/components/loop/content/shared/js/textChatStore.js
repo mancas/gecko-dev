@@ -17,6 +17,7 @@ loop.store.TextChatStore = (function() {
   };
 
   var CHAT_CONTENT_TYPES = loop.shared.utils.CHAT_CONTENT_TYPES;
+  var DOMAIN_REG_EXP = "/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i/";
 
   /**
    * A store to handle text chats. The store has a message list that may
@@ -27,7 +28,8 @@ loop.store.TextChatStore = (function() {
       "dataChannelsAvailable",
       "receivedTextChatMessage",
       "sendTextChatMessage",
-      "updateRoomInfo"
+      "updateRoomInfo",
+      "updateRoomContext"
     ],
 
     /**
@@ -189,7 +191,54 @@ loop.store.TextChatStore = (function() {
           }
         });
       }
-    }
+    },
+
+    /**
+     * Handles receiving information about the room context due to a change of the tabs
+     *
+     * @param  {sharedActions.updateRoomContext} actionData
+     */
+    updateRoomContext: function(actionData) {
+console.info("MANU", actionData);
+      // Firstly, check if there is a previous context tile, if not, create it
+      var contextTile = null;
+      var i = this._storeState.messageList.length;
+      for (i; i > 0; i--) {
+        if (this._storeState.messageList[i].contentType === CHAT_CONTENT_TYPES.CONTEXT_TILE) {
+          contextTile = this._storeState.messageList[i];
+          break;
+        }
+      }
+
+      if (!contextTile) {
+        this._appendContextTileMessage(actionData);
+        return;
+      }
+
+      var oldDomain = contextTile.match(DOMAIN_REG_EXP);
+      var currentDomain = actionData.newRoomURL.match(DOMAIN_REG_EXP);
+
+      if (oldDomain === currentDomain) {
+        return;
+      }
+
+      this._appendContextTileMessage(actionData);
+     },
+
+     _appendContextTileMessage: function(data) {
+        var msgData = {
+          contentType: CHAT_CONTENT_TYPES.CONTEXT_TILE,
+          message: data.newRoomDescription,
+          extraData: {
+            roomToken: data.roomToken,
+            newRoomThumbnail: data.newRoomThumbnail,
+            newRoomURL: data.newRoomURL
+          },
+          sentTimestamp: data.sentTimestamp
+        };
+
+        this.sendTextChatMessage(msgData);
+     }
   });
 
   return TextChatStore;

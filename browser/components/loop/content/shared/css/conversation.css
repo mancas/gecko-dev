@@ -1080,6 +1080,17 @@ html[dir="rtl"] .text-chat-entry.received .text-chat-arrow {
   margin-left: -10px;
 }
 
+/* Context updated */
+.text-chat-entry .context-wrapper {
+  max-width: 254px;
+  min-height: 50px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 1px 1px rgba(0,0,0,.15);
+}
+
 .text-chat-header.special.room-name {
   color: #666;
   font-weight: bold;
