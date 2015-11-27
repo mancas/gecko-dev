@@ -22,6 +22,7 @@ describe("loop.store.ActiveRoomStore", function() {
 
     LoopMochaUtils.stubLoopRequest(requestStubs = {
       GetLoopPref: sinon.stub(),
+      GetSelectedTabMetadata: sinon.stub(),
       SetLoopPref: sinon.stub(),
       AddConversationContext: sinon.stub(),
       AddBrowserSharingListener: sinon.stub().returns(42),
@@ -1540,6 +1541,25 @@ describe("loop.store.ActiveRoomStore", function() {
   });
 
   describe("#startScreenShare", function() {
+    var getSelectedTabMetadataStub;
+
+    beforeEach(function() {
+      getSelectedTabMetadataStub = sinon.stub().returns({
+        title: "fakeTitle",
+        favicon: "fakeFavicon",
+        url: "http://www.fakeurl.com"
+      });
+      LoopMochaUtils.stubLoopRequest({
+        GetSelectedTabMetadata: getSelectedTabMetadataStub
+      });
+
+      store.setStoreState({
+        roomState: ROOM_STATES.JOINED,
+        roomToken: "fakeToken",
+        sessionToken: "1627384950"
+      });
+    });
+
     afterEach(function() {
       store.endScreenShare();
     });
@@ -1588,6 +1608,25 @@ describe("loop.store.ActiveRoomStore", function() {
           scrollWithPage: true
         }
       });
+    });
+
+    it("should request the new metadata when the browser being shared change", function() {
+      store.startScreenShare(new sharedActions.StartScreenShare({
+        type: "browser"
+      }));
+
+      var clock = sinon.useFakeTimers();
+      clock.tick(301);
+
+      sinon.assert.calledOnce(getSelectedTabMetadataStub);
+      sinon.assert.calledOnce(dispatcher.dispatch);
+      sinon.assert.calledWith(dispatcher.dispatch,
+        new sharedActions.UpdateRoomContext({
+          newRoomDescription: "fakeTitle",
+          newRoomThumbnail: "fakeFavicon",
+          newRoomURL: "http://fakeurl.com",
+          roomToken: store.getStoreState().roomToken
+      }));
     });
   });
 

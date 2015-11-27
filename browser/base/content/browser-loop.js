@@ -422,6 +422,10 @@ var LoopUI;
       if (!this._listeningToTabSelect) {
         gBrowser.tabContainer.addEventListener("TabSelect", this);
         this._listeningToTabSelect = true;
+
+        // Watch for title changes as opposed to location changes as more
+        // metadata about the page is available when this event fires.
+        gBrowser.addEventListener("DOMTitleChanged", this);
       }
 
       this._maybeShowBrowserSharingInfoBar();
@@ -441,6 +445,7 @@ var LoopUI;
 
       this._hideBrowserSharingInfoBar();
       gBrowser.tabContainer.removeEventListener("TabSelect", this);
+      gBrowser.removeEventListener("DOMTitleChanged", this);
       this._listeningToTabSelect = false;
     },
 
@@ -536,30 +541,41 @@ var LoopUI;
     },
 
     /**
+    * Boradcast 'BrowserSwitch' event.
+    */
+    _notifyBrowserSwitch() {
+       // Get the first window Id for the listener.
+      this.LoopAPI.broadcastPushMessage("BrowserSwitch",
+        gBrowser.selectedBrowser.outerWindowID);
+    },
+
+    /**
      * Handles events from gBrowser.
      */
     handleEvent: function(event) {
-      // We only should get "select" events.
-      if (event.type != "TabSelect") {
-        return;
+      switch(event.type) {
+        case "DOMTitleChanged":
+          // Get the new title of the shared tab
+          this._notifyBrowserSwitch();
+          break;
+        case "TabSelect":
+          let wasVisible = false;
+          // Hide the infobar from the previous tab.
+          if (event.detail.previousTab) {
+            wasVisible = this._hideBrowserSharingInfoBar(false, event.detail.previousTab.linkedBrowser);
+          }
+
+          // We've changed the tab, so get the new window id.
+          this._notifyBrowserSwitch();
+
+          if (wasVisible) {
+            // If the infobar was visible before, we should show it again after the
+            // switch.
+            this._maybeShowBrowserSharingInfoBar();
+          }
+          break;
       }
 
-      let wasVisible = false;
-      // Hide the infobar from the previous tab.
-      if (event.detail.previousTab) {
-        wasVisible = this._hideBrowserSharingInfoBar(false,
-          event.detail.previousTab.linkedBrowser);
-      }
-
-      // We've changed the tab, so get the new window id.
-      this.LoopAPI.broadcastPushMessage("BrowserSwitch",
-        gBrowser.selectedBrowser.outerWindowID);
-
-      if (wasVisible) {
-        // If the infobar was visible before, we should show it again after the
-        // switch.
-        this._maybeShowBrowserSharingInfoBar();
-      }
     },
 
     /**
