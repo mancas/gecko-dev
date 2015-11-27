@@ -921,7 +921,7 @@ loop.store.ActiveRoomStore = (function() {
       }
 
       // The browser being shared changed, so update to the new context
-      loop.request("getSelectedTabMetadata").then(function(meta) {
+      loop.request("GetSelectedTabMetadata").then(function(meta) {
         if (!meta) {
           return;
         }
@@ -938,7 +938,7 @@ loop.store.ActiveRoomStore = (function() {
             roomToken: this.getStoreState().roomToken
           }));
           updateContextRequest = null;
-        }.bind(this), 300);
+        }.bind(this), 500);
       }.bind(this));
     },
 
