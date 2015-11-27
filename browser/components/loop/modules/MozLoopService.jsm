@@ -954,6 +954,11 @@ var MozLoopServiceInternal = {
               //       needs to be done on the content side as well (e.g.
               //       activeRoomStore#windowUnload).
               LoopRooms.leave(conversationWindowData.roomToken);
+              MozLoopService.setScreenShareState(windowId, false);
+              LoopAPI.sendMessageToHandler({
+                name: "RemoveBrowserSharingListener",
+                data: [windowId]
+              });
             }
           }
         }
@@ -1204,7 +1209,7 @@ var gServiceInitialized = false;
  */
 this.MozLoopService = {
   _DNSService: gDNSService,
-  _activeScreenShares: [],
+  _activeScreenShares: new Set(),
 
   get channelIDs() {
     // Channel ids that will be registered with the PushServer for notifications

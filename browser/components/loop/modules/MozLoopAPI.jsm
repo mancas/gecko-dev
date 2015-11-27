@@ -123,7 +123,7 @@ const updateSocialProvidersCache = function() {
 };
 
 var gAppVersionInfo = null;
-var gBrowserSharingListenerCount = 0;
+var gBrowserSharingListeners = new Set();
 var gBrowserSharingWindows = new Set();
 var gPageListeners = null;
 var gOriginalPageListeners = null;
@@ -168,10 +168,13 @@ const kMessageHandlers = {
       return;
     }
 
+    let [windowId] = message.data;
+
     win.LoopUI.startBrowserSharing();
 
     gBrowserSharingWindows.add(Cu.getWeakReference(win));
-    ++gBrowserSharingListenerCount;
+    gBrowserSharingListeners.add(windowId);
+    reply();
   },
 
   /**
@@ -232,13 +235,14 @@ const kMessageHandlers = {
    *                           message handler. The result will be sent back to
    *                           the senders' channel.
    */
-  ComposeEmail: function(message) {
+  ComposeEmail: function(message, reply) {
     let [subject, body, recipient] = message.data;
     recipient = recipient || "";
     let mailtoURL = "mailto:" + encodeURIComponent(recipient) +
                     "?subject=" + encodeURIComponent(subject) +
                     "&body=" + encodeURIComponent(body);
     extProtocolSvc.loadURI(CommonUtils.makeURI(mailtoURL));
+    reply();
   },
 
   /**
@@ -814,6 +818,7 @@ const kMessageHandlers = {
     let win = Services.wm.getMostRecentWindow("navigator:browser");
     let url = message.data[0] ? message.data[0] : "about:home";
     win.openDialog("chrome://browser/content/", "_blank", "chrome,all,dialog=no,non-remote", url);
+    reply();
   },
 
   /**
@@ -837,13 +842,17 @@ const kMessageHandlers = {
   /**
    * Removes a listener that was previously added.
    */
-  RemoveBrowserSharingListener: function() {
-    if (!gBrowserSharingListenerCount) {
+  RemoveBrowserSharingListener: function(message, reply) {
+    if (!gBrowserSharingListeners.size) {
+      reply();
       return;
     }
 
-    if (--gBrowserSharingListenerCount > 0) {
+    let [windowId] = message.data;
+    gBrowserSharingListeners.delete(windowId);
+    if (gBrowserSharingListeners.size > 0) {
       // There are still clients listening in, so keep on listening...
+      reply();
       return;
     }
 
@@ -856,6 +865,7 @@ const kMessageHandlers = {
     }
 
     gBrowserSharingWindows.clear();
+    reply();
   },
 
   "Rooms:*": function(action, message, reply) {
@@ -896,9 +906,10 @@ const kMessageHandlers = {
    *                           message handler. The result will be sent back to
    *                           the senders' channel.
    */
-  SetLoopPref: function(message) {
+  SetLoopPref: function(message, reply) {
     let [prefName, value, prefType] = message.data;
     MozLoopService.setLoopPref(prefName, value, prefType);
+    reply();
   },
 
   /**
@@ -917,9 +928,10 @@ const kMessageHandlers = {
    *                           message handler. The result will be sent back to
    *                           the senders' channel.
    */
-  SetScreenShareState: function(message) {
+  SetScreenShareState: function(message, reply) {
     let [windowId, active] = message.data;
     MozLoopService.setScreenShareState(windowId, active);
+    reply();
   },
 
   /**
@@ -1269,7 +1281,44 @@ const LoopAPIInternal = {
     if (gSocialProviders) {
       Services.obs.removeObserver(updateSocialProvidersCache, "social:providers-changed");
     }
-  }
+  },
+
+    /**
+   * Gateway for chrome scripts to send a message to a message handler, when
+   * using the RemotePageManager module is not an option.
+   *
+   * @param {Object}   message Message meant for the handler function, containing
+   *                           the following properties:
+   *                           - {String} name     Name of handler to send this
+   *                                               message to. See `kMessageHandlers`
+   *                                               for the available names.
+   *                           - {String} [action] Optional action name of the
+   *                                               function to call on a sub-API.
+   *                           - {Array}  data     List of arguments that the
+   *                                               handler can use.
+   * @param {Function} [reply] Callback function, invoked with the result of this
+   *                           message handler. Optional.
+   */
+  sendMessageToHandler: function(message, reply) {
+    reply = reply || function() {};
+    let handlerName = message.name;
+    if (!kMessageHandlers[handlerName]) {
+      let msg = "Ouch, no message handler available for '" + handlerName + "'";
+      MozLoopService.log.error(msg);
+      reply(cloneableError(msg));
+      return;
+    }
+
+    if (!message.data) {
+      message.data = [];
+    }
+
+    if (handlerName.endsWith("*")) {
+      kMessageHandlers[handlerName](message.action, message, reply);
+    } else {
+      kMessageHandlers[handlerName](message, reply);
+    }
+  },
 };
 
 this.LoopAPI = Object.freeze({

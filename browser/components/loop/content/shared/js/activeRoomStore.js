@@ -965,7 +965,8 @@ loop.store.ActiveRoomStore = (function() {
         // Set up a listener for watching screen shares. This will get notified
         // with the first windowId when it is added, so we start off the sharing
         // from within the listener.
-        loop.request("AddBrowserSharingListener").then(this._browserSharingListener);
+        loop.request("AddBrowserSharingListener", this.getStoreState().windowId)
+          .then(this._browserSharingListener);
         loop.subscribe("BrowserSwitch", this._browserSharingListener);
       } else {
         this._sdkDriver.startScreenShare(options);
@@ -978,7 +979,7 @@ loop.store.ActiveRoomStore = (function() {
     endScreenShare: function() {
       if (this._browserSharingListener) {
         // Remove the browser sharing listener as we don't need it now.
-        loop.request("RemoveBrowserSharingListener");
+        loop.request("RemoveBrowserSharingListener", this.getStoreState().windowId);
         loop.unsubscribe("BrowserSwitch", this._browserSharingListener);
         this._browserSharingListener = null;
       }
@@ -1116,13 +1117,8 @@ loop.store.ActiveRoomStore = (function() {
         loop.standaloneMedia.multiplexGum.reset();
       }
 
-      var requests = [
-        ["SetScreenShareState", this.getStoreState().windowId, false]
-      ];
-
       if (this._browserSharingListener) {
         // Remove the browser sharing listener as we don't need it now.
-        requests.push(["RemoveBrowserSharingListener"]);
         loop.unsubscribe("BrowserSwitch", this._browserSharingListener);
         this._browserSharingListener = null;
       }
@@ -1143,17 +1139,6 @@ loop.store.ActiveRoomStore = (function() {
         clearTimeout(this._timeout);
         delete this._timeout;
       }
-
-      if (!failedJoinRequest &&
-          (this._storeState.roomState === ROOM_STATES.JOINING ||
-           this._storeState.roomState === ROOM_STATES.JOINED ||
-           this._storeState.roomState === ROOM_STATES.SESSION_CONNECTED ||
-           this._storeState.roomState === ROOM_STATES.HAS_PARTICIPANTS)) {
-        requests.push(["Rooms:Leave", this._storeState.roomToken,
-          this._storeState.sessionToken]);
-      }
-
-      loop.requestMulti.apply(null, requests);
 
       this.setStoreState({ roomState: nextState });
     },
