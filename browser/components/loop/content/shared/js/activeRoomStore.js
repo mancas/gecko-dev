@@ -925,12 +925,13 @@ loop.store.ActiveRoomStore = (function() {
         if (!meta) {
           return;
         }
-
+console.info("MANUUU", meta);
         if (updateContextRequest) {
           clearTimeout(updateContextRequest);
         }
 
         updateContextRequest = setTimeout(function() {
+          console.info("HEREE");
           this.dispatchAction(new sharedActions.UpdateRoomContext({
             newRoomDescription: meta.title || meta.description || meta.url,
             newRoomThumbnail: meta.favicon,
